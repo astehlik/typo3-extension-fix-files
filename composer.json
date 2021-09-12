@@ -1,0 +1,18 @@
+{
+    "name": "de-swebhosting-typo3-extension/fix-files",
+    "description": "Commands for fixing files",
+    "type": "typo3-cms-extension",
+	"require": {
+		"ext-pdo": "*"
+	},
+    "autoload": {
+        "psr-4": {
+            "Swh\\FixFiles\\": "Classes/"
+        }
+    },
+	"extra": {
+		"typo3/cms": {
+			"extension-key": "fix_files"
+		}
+	}
+}
