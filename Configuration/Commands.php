@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Swh\FixFiles\Command\FixHashesCommand;
 use Swh\FixFiles\Command\MergeDuplicatesCommand;
 

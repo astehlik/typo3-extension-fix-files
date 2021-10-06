@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 namespace Swh\FixFiles\Command;
 
+use Doctrine\DBAL\FetchMode;
 use PDO;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
@@ -16,9 +17,15 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 final class MergeDuplicatesCommand extends Command
 {
-    private ConnectionPool $connectionPool;
+    /**
+     * @var ConnectionPool
+     */
+    private $connectionPool;
 
-    private OutputInterface $output;
+    /**
+     * @var OutputInterface
+     */
+    private $output;
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -69,7 +76,7 @@ final class MergeDuplicatesCommand extends Command
                 $duplicateQuery->expr()->eq('identifier', $duplicateQuery->createNamedParameter($identifier))
             );
 
-        $duplicates = $duplicateQuery->execute()->fetchAllAssociative();
+        $duplicates = $duplicateQuery->execute()->fetchAll(FetchMode::ASSOCIATIVE);
         if (count($duplicates) < 2) {
             throw new RuntimeException('File does not have duplicates: ' . $identifier);
         }
@@ -101,7 +108,7 @@ final class MergeDuplicatesCommand extends Command
             ->andWhere($refQuery->expr()->neq('tablename', $refQuery->expr()->literal('sys_file_metadata')))
             ->andWhere($refQuery->expr()->eq('ref_uid', $refQuery->createNamedParameter($fileUid, PDO::PARAM_INT)))
             ->execute()
-            ->fetchAllAssociative();
+            ->fetchAll(FetchMode::ASSOCIATIVE);
     }
 
     private function getStorageUids(): array
@@ -112,7 +119,7 @@ final class MergeDuplicatesCommand extends Command
             ->addOrderBy('storage')
             ->addGroupBy('storage');
 
-        return $storageQuery->execute()->fetchFirstColumn();
+        return $storageQuery->execute()->fetchAll(FetchMode::COLUMN);
     }
 
     private function mergeDuplicateFile(int $storageUid, string $identifier): void
@@ -187,7 +194,7 @@ final class MergeDuplicatesCommand extends Command
             ->andHaving($duplicateQuery->expr()->count('uid') . '> 1');
 
         $duplicateResult = $duplicateQuery->execute();
-        while ($duplicateIdentifer = $duplicateResult->fetchOne()) {
+        while ($duplicateIdentifer = $duplicateResult->fetchColumn()) {
             $this->mergeDuplicateFile($storageUid, $duplicateIdentifer);
         }
     }

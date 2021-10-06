@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Swh\FixFiles\Command;
 
+use Doctrine\DBAL\FetchMode;
 use PDO;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -14,11 +15,20 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 final class FixHashesCommand extends Command
 {
-    private ConnectionPool $connectionPool;
+    /**
+     * @var ConnectionPool
+     */
+    private $connectionPool;
 
-    private OutputInterface $output;
+    /**
+     * @var OutputInterface
+     */
+    private $output;
 
-    private ResourceFactory $resourceFactory;
+    /**
+     * @var ResourceFactory
+     */
+    private $resourceFactory;
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -38,7 +48,7 @@ final class FixHashesCommand extends Command
                 'Updating hashes of file %s [%d] in storage %d...',
                 $fileData['identifier'],
                 $fileData['uid'],
-                $fileData['storage'],
+                $fileData['storage']
             )
         );
 
@@ -64,7 +74,7 @@ final class FixHashesCommand extends Command
 
         $hasUpdatedFiles = false;
         $filesResult = $filesQuery->execute();
-        while ($fileData = $filesResult->fetchAssociative()) {
+        while ($fileData = $filesResult->fetch(FetchMode::ASSOCIATIVE)) {
             $storage = $this->resourceFactory->getStorageObject($fileData['storage']);
 
             $identifierHash = $storage->hashFileIdentifier($fileData['identifier']);
